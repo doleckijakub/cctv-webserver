@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -10,13 +11,18 @@
 
 const char *argv0;
 
-void error(const char *msg) {
+void error(const char *msg, ...) {
+	va_list va;
+	va_start(va, msg);
+
 	fprintf(stderr, "Error: ");
-	fprintf(stderr, msg);
+	vfprintf(stderr, msg, va);
 	fprintf(stderr, "\n");
+
+	va_end(va);
 }
 
-void usage() {
+void usage(void) {
 	fprintf(stderr,
 		"Usage: %s "
 		"<ip|localhost|anyhost> "
@@ -38,7 +44,7 @@ int main(int argc, const char **argv) {
 		} else if (strcmp(arg, "anyhost") == 0) {
 			s_addr = INADDR_ANY;
 		} else if ((s_addr = inet_addr(arg)) == INADDR_NONE) {
-			error("Invalid ip provided"); // TODO: add varargs to error and show ip
+			error("Invalid ip provided: %s", arg);
 			usage();
 			return 1;
 		}
@@ -75,4 +81,7 @@ int main(int argc, const char **argv) {
 		usage();
 		return 1;
 	}
+
+	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+
 }
